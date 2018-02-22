@@ -6,11 +6,11 @@ AutoHotkey program to quickly crop many same sized images via an overlay preview
 
 [Download BookCrop binary](https://github.com/nod5/BookCrop/releases)
 
-![Alt text](images/bookcrop_screenshot1.png?raw=true)
+![Alt text](images/bookcrop_screenshot1.PNG?raw=true)
 
-![Alt text](images/bookcrop_screenshot2.png?raw=true)
+![Alt text](images/bookcrop_screenshot2.PNG?raw=true)
 
-[larger screenshot](images/bookcrop_screenshot2_large.png)
+[larger screenshot](images/bookcrop_screenshot2_large.PNG)
 
 
 ## How to use
