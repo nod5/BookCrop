@@ -1,4 +1,4 @@
-#singleinstance, force
+﻿#singleinstance, force
 #Persistent
 SetBatchLines -1
 
@@ -7,9 +7,10 @@ info =
 ;BookCrop
 Quickly crop many same sized images via an overlay preview
 
-version 2018-02-22
+version 2018-10-21
 By Nod5
-Free Software -- http://www.gnu.org/licenses/gpl-3.0.html
+Free Software GPLv3
+AutoHotkey
 Made in Windows 10
 
 HOW TO USE
@@ -26,30 +27,31 @@ SETUP
     - copy jpegtran.exe and libjpeg-62.dll and place next to BookCrop.exe
 
 MORE FEATURES
-Ctrl+Click and draw another rectangle to split crop to two images (L and R suffix)
+Ctrl+Click and draw another rectangle to split crop into 
+two images with L and R suffix.
 
 Ctrl+Tab starts R L mode
-Files ending with L.jpg and R.jpg are previewed and cropped separately
+Files ending with L.jpg and R.jpg are previewed and cropped separately.
 
-R/L at preview: rotate preview in 90 degree steps
+R/L at preview: rotate preview in 90 degree steps.
 
 S at preview: Scrub mode
 Draw a rectangle to whiten that area in binarized tif input images.
 Useful for scrubbing noise near inner/outer edges on book page photos.
 
 Command line input: a folder path or image filepaths or a .txt with
-one image filepath per line
+one image filepath per line.
 
-Drop a folder: Process all jpg or tif in folder (whichever there is more of)
+Drop a folder: Process all jpeg or tif in folder (whichever there is more of).
 
-Drop a single jpg or tif: Quick preview. Move threshold slider to refresh.
+Drop a single jpeg or tif: Quick preview. Move threshold slider to refresh.
 Change threshold in quick preview if the overlay is too dark or light.
 
 Important: Preview and cropping only works well on same size input images.
-Advice: Use crop to subfolder, so you can redo if you overcrop.
+Advice: Use crop to subfolder, so you can redo if you crop too much.
 )
 
-xwintitle = BookCrop
+wintitle = BookCrop
 
 ;variable inventory
 ; x1 y1  x2 y2   = crop rectangle top left and bottom right corners:
@@ -72,19 +74,18 @@ Gui,6: Add, GroupBox, x5 y2 w290 h300
 if A_IsCompiled
   Gui,6: Add, Picture,x130 y75, %A_ScriptName%  ;use script icon
 Gui,6: Add, Text,x78 y125 h130 w200 vtxt,Drop .jpg folder
-Gui,6: Show,h360 w300 y250,%xwintitle%
+Gui,6: Show,h360 w300 y250,%wintitle%
 
 checkini()
 if splash = 1
   goto splash
 
-crop_scrub := "Crop" ;default to crop mode
-
+;default to crop mode
+crop_scrub := "Crop"
 
 ;parse command line parameters
 if A_Args[1]
 {
-
   ;textfile with linebreak separated image paths
   If ( SubStr(A_Args[1], -3) == ".txt" ) and FileExist(A_Args[1])
   {
@@ -97,8 +98,8 @@ if A_Args[1]
   ;else add each param to list
   Else If InStr( FileExist(A_Args[1]), "D" ) ;folder
   {
-  params := A_Args[1]
-  goto param_started
+    params := A_Args[1]
+    goto param_started
   }
 
   ;else make list of params
@@ -110,25 +111,25 @@ if A_Args[1]
 
 ;function: read ini settings or create default ini if none exists
 checkini() {
-global
-xini = %A_ScriptFullPath%.ini
-ifnotexist, %xini%
-{
-xinitext =
-(
-[%xwintitle%]
-splash=1
-subdir=1
-scrubdir=1
-threshold=20
-)
-FileAppend, %xinitext%, %xini%
-}
-;settings from ini or default
-xval = splash,subdir,scrubdir,threshold  ;default: 1,1,1,20
-Loop, Parse, xval,`,
-  IniRead, %A_LoopField%, %xini%, %xwintitle%, %A_LoopField%, 1
-threshold := threshold > 1 and threshold <= 99 ? threshold : 20
+  global
+  xini = %A_ScriptFullPath%.ini
+  ifnotexist, %xini%
+  {
+    xinitext =
+    (Ltrim
+    [%wintitle%]
+    splash=1
+    subdir=1
+    scrubdir=1
+    threshold=20
+    )
+    FileAppend, %xinitext%, %xini%
+  }
+  ;settings from ini or default
+  xval = splash,subdir,scrubdir,threshold  ;default: 1,1,1,20
+  Loop, Parse, xval,`,
+    IniRead, %A_LoopField%, %xini%, %wintitle%, %A_LoopField%, 1
+  threshold := threshold > 1 and threshold <= 99 ? threshold : 20
 }
 
 
@@ -141,9 +142,9 @@ GuiControl,6:, txt, %txt%
 return
 
 
-;toggle scrub mode
+;toggle scrub mode at preview stage
 s::
-if blockshift or xext == "jpg"
+if blockshift or (xext = "jpg")
   return
 GuiControlGet, crop_scrub,5:, crop
 crop_scrub := crop_scrub == "Crop" ? "Scrub" : "Crop"
@@ -155,7 +156,8 @@ return
 ;rotate images before crop
 r:: 
 l::
-GuiControlGet,button_control, 5:, Button1  ;only in pic mode
+;only rotate at preview stage
+GuiControlGet,button_control, 5:, Button1
 if !button_control
   return
 
@@ -166,9 +168,9 @@ deg := a_thislabel == "r" ? 90 : -90
 totrot += deg
 totrot := totrot<0 ? totrot+360 : totrot>360 ? totrot-360 : totrot  ;0 90 180 270
 
-;case1: rotated pic height won't fit inside screen height  -> shrink preview height to fit
-;case2: last rotation involved height shrink of preview    -> use original preview backup
-;case3: rotated height fits and no previous height shrink  -> rotate
+;case1: rotated pic height won't fit inside screen height   -> shrink preview height to fit
+;case2: previous rotation involved height shrink of preview -> use original preview backup
+;case3: rotated height fits and no previous height shrink   -> rotate
 
 ;case1: pic will not fit screen height, so shrink it
 if (pic_w > A_ScreenHeight-145)
@@ -235,7 +237,7 @@ Tab:: goto splash
 
 ;help window
 splash:
-WinGetPos,mainx,mainy, mainw,, %xwintitle%
+WinGetPos,mainx,mainy, mainw,, %wintitle%
 mainx += mainw
 
 Gui 7:+LastFoundExist
@@ -247,18 +249,18 @@ IfWinExist
 }
 Gui, 7: +ToolWindow -SysMenu -Caption -resize +AlwaysOnTop +0x800000 -DPIScale
 Gui, 7: Font, bold s12
-Gui, 7: Add, Text,, %xwintitle%
+Gui, 7: Add, Text,, %wintitle%
 Gui, 7: Font, normal s9
 Gui, 7: Add, Text,, %info%
-Gui, 7: Add, Checkbox,xm Checked%splash% section vsplashbox gsplashbox, show on startup
+Gui, 7: Add, Checkbox,xm Checked%splash% section vsplashbox gsplashbox, show help on startup
 Gui, 7: Add, Checkbox,xm Checked%subdir% section vsubdirbox gsubdirbox, crop to subfolder
 Gui, 7: Add, Checkbox,xm Checked%scrubdir% section vscrubdirbox gscrubdirbox, scrub to subfolder
 Gui, 7: Add, text, yp+30 x20 w55 h15,threshold
 Gui, 7: Add, text, vtext yp xp+47 w20 h15,%threshold%
 Gui, 7: Add, Slider, NoTicks yp+15 x11 w180 h20 vslider gslider, %threshold%
 Gui, 7: Add, Link,ys xm+200,<a href="https://github.com/nod5/BookCrop">github.com/nod5/BookCrop</a>
-Gui, 7: Add, Link,yp+20 xm+200,<a href="http://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/">graphicsmagick.org</a>
-Gui, 7: Add, Link,yp+20 xm+200,<a href="http://sourceforge.net/projects/libjpeg-turbo/files/">libjpeg-turbo</a>
+Gui, 7: Add, Link,yp+20 xm+200,<a href="https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/">graphicsmagick.org</a>
+Gui, 7: Add, Link,yp+20 xm+200,<a href="https://sourceforge.net/projects/libjpeg-turbo/files/">libjpeg-turbo</a>
 Gui, 7: show, x%mainx% y%mainy%
 return
 
@@ -267,16 +269,18 @@ return
 ;multi image preview mode: apply threshold change next time images are dropped
 slider:
 Gui, Submit, NoHide
-IniWrite, %slider%, %xini%, %xwintitle%, threshold
+IniWrite, %slider%, %xini%, %wintitle%, threshold
 threshold := slider
 GuiControl,,text, %slider%
 
 if !single_image_mode
   return
 if !FileExist(gm)
-  gm := checkpaths() ;checks graphicsmagick and jpegtran, returns full gm.exe path
+  ;check graphicsmagick and jpegtran, return full gm.exe path
+  gm := checkpaths()
 if !FileExist(gm)
   return
+
 ;make new threshold binarized preview
 RunWait "%gm%" convert -size %pic_w%x%pic_h% "%firstfile%" -sample %pic_w%x%pic_h% -threshold %threshold%`% -transparent white -flatten "%overlay%" ,,hide
 Gui,5: destroy
@@ -290,16 +294,18 @@ return
 ;helpwin checkboxes: write change to ini
 splashbox: 
 Gui, Submit, NoHide
-IniWrite, %splashbox%, %xini%, %xwintitle%, splash
+IniWrite, %splashbox%, %xini%, %wintitle%, splash
 return
+
 subdirbox:
 Gui, Submit, NoHide
-IniWrite, %subdirbox%, %xini%, %xwintitle%, subdir
+IniWrite, %subdirbox%, %xini%, %wintitle%, subdir
 subdir := subdirbox
 return
+
 scrubdirbox:
 Gui, Submit, NoHide
-IniWrite, %scrubdirbox%, %xini%, %xwintitle%, scrubdir
+IniWrite, %scrubdirbox%, %xini%, %wintitle%, scrubdir
 scrubdir := scrubdirbox
 return
 
@@ -313,7 +319,8 @@ arr_R := "", arr_L := ""
 single_image_mode := ""
 
 if !FileExist(gm)
-  gm := checkpaths() ;checks graphicsmagick and jpegtran, returns full gm.exe path
+  ;check graphicsmagick and jpegtran, return full gm.exe path
+  gm := checkpaths()
 if !FileExist(gm)
   return
 xext =
@@ -344,7 +351,8 @@ if xattrib contains D
 
 overlay := xdir "\" A_scriptname "_over.png"  ;overlay filepath
 
-FileDelete, %overlay%  ;remove old overlay
+;remove old overlay
+FileDelete, %overlay%
 FileDelete, %overlay%_orig.png
 
 Gui,5: destroy
@@ -369,18 +377,19 @@ if xext in jpg,tif,tiff
 at := Object() , aj := Object()  ;tiff or jpg array
 
 ;image drop -> overlay all dropped tif or jpg
-if xext in jpg,tif,tiff       ;firstfile  is jpg or tif
-if xext2 in jpg,tif,tiff      ;secondfile is jpg or tif
-{
-  Loop, parse, dropped, `n
+;firstfile and secondfile is jpg or tif
+if xext in jpg,tif,tiff
+  if xext2 in jpg,tif,tiff
   {
-    SplitPath, A_LoopField,,,tempext
-    if (tempext == "tif" or tempext == "tiff")
-      at.Insert(A_LoopField)
-    if (tempext == "jpg")
-      aj.Insert(A_LoopField)
+    Loop, parse, dropped, `n
+    {
+      SplitPath, A_LoopField,,,tempext
+      if (tempext == "tif" or tempext == "tiff")
+        at.Insert(A_LoopField)
+      if (tempext == "jpg")
+        aj.Insert(A_LoopField)
+    }
   }
-}
 
 ;folder drop -> overlay all tif or jpg in folder
 if InStr(xattrib, "D")
@@ -393,7 +402,7 @@ if InStr(xattrib, "D")
     at.Insert(A_LoopFileFullpath)
 }
 
-;if at most one jpg or tiff
+;check array
 if (aj.MaxIndex() <= 1 and at.MaxIndex() <= 1)
   return
 
@@ -430,17 +439,20 @@ if InStr(txt,"R L") ;R L mode (as shown in gui text)
 ; mpc format is faster than jpg
 ; run many jobs to max out cpu cores
 
-rightside:  ;jump back here later to do R side when in in R L mode
+rightside:
+;jump back here later to do R side when in in R L mode
 
 ;assume first file's dimensions for all
 getdim(arr_do[1], prop, pic_w, pic_h, imgw, imgh)  ;ByRef returns
+
 ;number of images in batch
 xcount := arr_do.MaxIndex()
 
 SetTimer, prog, 200
-Progress, 0,, Creating overlay,%xwintitle%
+Progress, 0,, Creating overlay,%wintitle%
 
-tick := A_TickCount  ;for speedtest
+;for speedtest
+tick := A_TickCount
 
 for key, imgpath in arr_do
 {
@@ -500,7 +512,7 @@ edgey2 := py + ph      ;pic  low  edge
 LetUserSelectRect(screenx1, screeny1, screenx2, screeny2)
 
 ;cancel if no rectangle was made
-if (screenx1 == screenx2 OR screeny1 == screeny2)
+if (screenx1 == screenx2 or screeny1 == screeny2)
 {
   Loop, 4
     Gui, %xcontr%%A_Index%: destroy  ;clear this selection
@@ -508,16 +520,18 @@ if (screenx1 == screenx2 OR screeny1 == screeny2)
 }
 
 ;rect corners relative to pic top left
-;screenx1 -= edgex1 , screeny1 -= edgey1
-;screenx2 -= edgex1 , screeny2 -= edgey1
 picx1 := screenx1 - edgex1 , picy1 := screeny1 - edgey1
 picx2 := screenx2 - edgex1 , picy2 := screeny2 - edgey1
 
+if (xcontr = 1)
+  ;set selection2 crop vars
+  extra_x1:=picx1, extra_x2:=picx2, extra_y1:=picy1, extra_y2:=picy2
+else
+  ;set selection1 crop vars
+  x1:=picx1, x2:=picx2, y1:=picy1, y2:=picy2, extra_x1:="", extra_y1:="", extra_x2:="", extra_y2:=""
 
-if (xcontr=="1") ;set selection2 crop vars
-  extra_x1:=picx1, extra_x2:=picx2, extra_y1:=picy1, extra_y2:=picy2, r:=2
-else             ;set selection1 crop vars
-  x1:=picx1, x2:=picx2, y1:=picy1, y2:=picy2, r:=2, extra_x1:="", extra_y1:="", extra_x2:="", extra_y2:=""
+;line width
+r:=2
 
 ;show rectangle on preview pic
 ;note: x y relative to parent
@@ -539,10 +553,12 @@ crop:
 ;prevent s from toggling crop/scrub mode below this line
 blockshift := 1
 
-if !x1   ;no selection
+if !x1
+  ;no selection
   return
 
-tick := A_TickCount  ;for speedtest
+;for speedtest
+tick := A_TickCount
 
 ;make image crop values by upscaling from selection rect
 
@@ -572,27 +588,45 @@ if extra_x1
 
 ;prepare for cropping
 
-if extra_x   ;split crop to two images
+if extra_x
+  ;split crop to two images
   xcount *= 2
 Progress, 0,, Cropping,,
 settimer, progout, 600
 xtimestart := A_now
 
 
+;crop/scrub to subfolder or overwrite?
+
 if (crop_scrub == "Crop" and subdir) or (crop_scrub == "Scrub" and scrubdir)
 {
-  ;crop to subfolder, don't overwrite input images
-  ; if one image mode or if L side of two image mode: create subdir
-  ; if R side of two image mode: reuse that subdir
-
-  if (arr_do[1] != arr_R[1])
+  ;crop to subfolder
+  
+  ;default mode
+  if (arr_do != arr_R) and (arr_do != arr_L)
   {
     xoutdir := xdir "\" xtimestart
     FileCreateDir, % xoutdir
-
+  }
+  
+  ;crop only L side images this time
+  if (arr_do = arr_L)
+  {
+    ;subfolder
+    xoutdir := xdir "\" xtimestart
+    FileCreateDir, % xoutdir
+  }
+  
+  ;crop only R side images this time
+  if (arr_do = arr_R)
+  {
+    ;reuses subfolder from L side images crop
+    xoutdir := xoutdir
   }
 }
-else  ;not subdir mode, overwrite inputs
+else
+  ;no subdir, output to same folder as inputs
+  ;note: this overwrites input images
   xoutdir := xdir
 
 
@@ -605,9 +639,18 @@ if totrot in 0,360,720,-360,-720
 
 for key,imgpath in arr_do
 {
-  SplitPath, imgpath,xname,,,xnoext
+  SplitPath, imgpath,xname,,ext_this,xnoext
 
   ;scrub tif/tiff selection(s) white with graphicsmagick
+  
+  ; note: 
+  ; The -threshold step will cause scrub to fail if input .tif has JPEG compression
+  ; We need -threshold since without it some 1bit .tif inputs will grow ~10x in size.
+  ; note:
+  ; To remove JPEG compression on .tif before input to BookCrop and Scrub:
+  ; gm.exe convert <input tif> -compress none <output tif>
+  ; http://www.graphicsmagick.org/GraphicsMagick.html#details-compress
+  
   if (xext == "tif" and crop_scrub == "Scrub")
   {
     xend := x + w , yend := y + h
@@ -618,13 +661,13 @@ for key,imgpath in arr_do
       Run "%cropper%" convert "%imgpath%" %rot% -fill white -draw "rectangle %X%`,%Y% %xend%`,%yend%" -threshold 50`% "%xoutdir%\%xname%" ,,hide
   }
   
-  ;crop tif with graphicsmagick
+  ;crop tif/tiff with graphicsmagick
   else if (xext == "tif")
   {
     if extra_x   ;split crop R and L side
     {
-      Run "%cropper%" convert %rot% -crop %extra_w%x%extra_h%+%extra_x%+%extra_y% "%imgpath%" "%xoutdir%\%xnoext%R.%xext%",,hide
-      Run "%cropper%" convert %rot% -crop %W%x%H%+%X%+%Y% "%imgpath%" "%xoutdir%\%xnoext%L.%xext%" ,,hide
+      Run "%cropper%" convert %rot% -crop %extra_w%x%extra_h%+%extra_x%+%extra_y% "%imgpath%" "%xoutdir%\%xnoext%R.%ext_this%",,hide
+      Run "%cropper%" convert %rot% -crop %W%x%H%+%X%+%Y% "%imgpath%" "%xoutdir%\%xnoext%L.%ext_this%" ,,hide
     }
     else
       Run "%cropper%" convert %rot% -crop %W%x%H%+%X%+%Y% "%imgpath%" "%xoutdir%\%xname%" ,,hide
@@ -635,8 +678,8 @@ for key,imgpath in arr_do
   {
     if extra_x  ;split crop R and L side    ;jpegtran -crop WxH+X+Y  (X/Y = startpoints)
     {
-      Run "%cropper%" %rot% -crop %extra_w%x%extra_h%+%extra_x%+%extra_y% -outfile "%xoutdir%\%xnoext%R.%xext%" "%imgpath%",,hide
-      Run "%cropper%" %rot% -crop %W%x%H%+%X%+%Y% -outfile "%xoutdir%\%xnoext%L.%xext%" "%imgpath%",,hide
+      Run "%cropper%" %rot% -crop %extra_w%x%extra_h%+%extra_x%+%extra_y% -outfile "%xoutdir%\%xnoext%R.%ext_this%" "%imgpath%",,hide
+      Run "%cropper%" %rot% -crop %W%x%H%+%X%+%Y% -outfile "%xoutdir%\%xnoext%L.%ext_this%" "%imgpath%",,hide
     }
     else
       Run "%cropper%" %rot% -crop %W%x%H%+%X%+%Y% -outfile "%xoutdir%\%xname%" "%imgpath%",,hide
@@ -655,24 +698,98 @@ sleep 300
 FileDelete, %overlay%
 FileDelete, %overlay%_orig.png
 
+
+
+;Check if any outputs are missing
+arr_missing := []
+
+for key, val in arr_do
+{
+  SplitPath, val, filename, dir, ext, namenoext
+
+  ;check if single output file is missing
+  if !extra_x or (crop_scrub = "Scrub")
+    if !FileExist(xoutdir "\" filename)
+      arr_missing.Insert(filename)
+
+  ;check if R L suffixed split output files are missing
+  if extra_x and (crop_scrub != "Scrub")
+    if !FileExist(xoutdir "\" namenoext "R." ext)
+      arr_missing.Insert(namenoext "R." ext)
+
+  if extra_x and (crop_scrub != "Scrub")
+    if !FileExist(xoutdir "\" namenoext "L." ext)
+      arr_missing.Insert(namenoext "L." ext)
+}
+
+
+; Notes: 
+; In some cases some output images are not created.
+; - .jpg crop error case:
+;   If input images differ in pixel dimensions then rectangle may be larger than the image.
+;   Workaround: use inputs with same dimensions or crop smaller.
+; - .tif scrub error case:
+;   If input tif has JPEG compression then -threshold command will not work (see earlier note)
+;   Workaround: change from JPEG compression to none or other compression first.
+
+;if outputs are missing: notify and reload
+missing_count   := arr_missing.MaxIndex()
+expected_count  := arr_do.MaxIndex()
+missing_list    := ""
+if missing_count
+{
+  for key, val in arr_missing
+    missing_list .= val "`n"
+  
+  guess_crop  := "If input images differ in pixel dimensions`nthen retry with a smaller crop rectangle."
+  guess_scrub := "If input .tif images have JPEG compression`nthen change/remove compression and retry Scrub."
+  error_guess := crop_scrub = "Scrub" ? guess_scrub : guess_crop
+  
+  missing =
+  (LTrim
+  Error: Some output files could not be created.
+
+  %error_guess%
+  
+  BookCrop will now restart.
+  
+  Error creating %missing_count% out of %expected_count% files:
+  
+  %missing_list%
+  )
+
+  msgbox % missing
+  reload
+}
+
+
 ;if L side images was cropped, continue with R side
 if (arr_do == arr_L)
 {
-  arr_do := arr_R, totrot := "", rot_prop := ""
+  arr_do    := arr_R
+  totrot    := ""
+  rot_prop  := ""
+  ;clear second rectangle data, avoids unwanted splitcrop with old second rect on R set
+  extra_x1:= extra_x2:= extra_y1:= extra_y2:= ""
+  extra_x:= extra_y:= extra_w:= extra_h:= ""
+  ;clear block so that S hotkey works also at R set preview
+  blockshift := ""
   Gui,5: destroy
   Gui,6: destroy
   Gui,7: destroy
   goto rightside
 }
 
+;speedtest
 tick := A_TickCount - tick
-;msgbox crop time = %tick% ms   ;speedtest
+;msgbox crop time = %tick% ms
 
 reload
 return
 
 
-;progress bar while cropping
+
+;timer: progress bar while cropping
 progout:
 xtot = 0
 Loop, %xoutdir%\*.%xext%
@@ -691,6 +808,7 @@ return
 FileDelete, %overlay%
 FileDelete, %overlay%_orig.png
 ExitApp
+
 
 
 ;function: test if input is Odd
@@ -817,8 +935,8 @@ makegui() {
   global
   Gui,5: destroy
   Gui,6: destroy
-  pic_h := pic_h < 50 ? A_screenheight-100 : pic_h
-  pic_w := pic_w < 50 ? A_screenwidth : pic_w
+  pic_h := pic_h < 50 ? A_screenheight-100  : pic_h
+  pic_w := pic_w < 50 ? A_screenwidth       : pic_w
 
   Gui,5: -DPIScale
   Gui,5: margin,0,0
@@ -829,7 +947,7 @@ makegui() {
   Gui,5: Add, Button, x100 y%hbut% vcrop gcrop, Crop
   GuiControl,5: Disable, crop  ;disabled until selection1
   Gui,5: font, s8 cgray norm
-  Gui,5: Show,w%pic_w% h%htot%,%xwintitle%
+  Gui,5: Show,w%pic_w% h%htot%,%wintitle%
   Gui,5: Add, Text,x%xspl% yp+10 gsplash, ?  ;helpwin button
   Gui,5: +LastFound
   MainhWnd := WinExist()

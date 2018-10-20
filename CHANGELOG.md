@@ -1,7 +1,17 @@
-# Change Log
+﻿# Change Log
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
+## [2018-10-21] - 2018-10-21
+### Changed
+- Verify output and show error prompt and exit if some output files are not created
+- Confirmed working with libjpeg-turbo-2.0.0-gcc64.exe
+- Readme updated
+
+### Fixed
+- Fix: R L mode now allows splitcrop on the L set and single crop on the R set and vice versa (old: splitcrop on the L set forced splitcrop also on R set and reused second rectangle from L set)
+- Fix: R L mode s hotkey can now change the button text to Scrub also at the R set preview
 
 ## [2018-02-22] - 2018-02-22
 ### Added
