@@ -1,7 +1,7 @@
 ﻿
 # BookCrop
 
-BookCrop.ahk  -  version 2018-10-20  -  by Nod5  -  GPLv3  -  Made in Windows 10  
+BookCrop.ahk  -  version 2018-10-21  -  by Nod5  -  GPLv3  -  Made in Windows 10  
 
 Quickly crop many same sized images via an overlay preview  
 
