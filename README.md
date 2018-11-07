@@ -60,7 +60,7 @@ Change threshold in quick preview if the overlay is too dark or light.
 
 - Advice: Use crop to subfolder, so you can redo if you crop too much.  
 
-- If you wish to run/build BookCrop.ahk from source: install [Autohotkey](https://autohotkey.com)  
+- If you wish to run/build BookCrop.ahk from source: install [AutoHotkey](https://autohotkey.com)  
 
 ## FAQ
 
